@@ -1,0 +1,56 @@
+name: TWRP Custom Recovery Build Engine
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout Runtime Build Workspace
+      uses: actions/checkout@v3
+
+    - name: Cleanup Environment Build Space
+      uses: rokibhasansagar/slimhub_actions@main
+
+    - name: Install Compilation Build Packages
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick lib32readline-dev lib32z1-dev liblz4-tool libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev python3
+
+    - name: Install Repo Command Line Tool
+      run: |
+        mkdir ~/bin
+        curl https://googleapis.com > ~/bin/repo
+        chmod a+x ~/bin/repo
+        sudo ln -sf ~/bin/repo /usr/bin/repo
+
+    - name: Sync TWRP Minimal Source Tree
+      run: |
+        mkdir ~/twrp
+        cd ~/twrp
+        git config --global user.name "Builder"
+        git config --global user.email "builder@twrp.com"
+        repo init --depth=1 -u https://github.com -b twrp-12.1
+        repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
+
+    - name: Clone Custom Target Device Tree
+      run: |
+        git clone https://github.com{{ github.repository }} ~/twrp/device/herofun/BH502G
+
+    - name: Compile Unofficial Custom Recovery
+      run: |
+        cd ~/twrp
+        export ALLOW_MISSING_DEPENDENCIES=true
+        source build/envsetup.sh
+        lunch omni_BH502G-userdebug
+        make bootimage -j$(nproc --all)
+
+    - name: Upload Compiled Recovery Image Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: TWRP-UnrootedRescue-BH502G
+        path: /home/runner/twrp/out/target/product/BH502G/boot.img
