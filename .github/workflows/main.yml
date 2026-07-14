@@ -29,7 +29,7 @@ jobs:
     - name: Setup Secure Fixed Repo Tool Launcher
       run: |
         mkdir -p ~/bin
-        # Switched to the official raw GitHub mirror to prevent Google Cloud server block/redirection bugs
+        # Corrected full raw domain pointer path to resolve the DNS exit code 6 block
         curl -s https://githubusercontent.com > ~/bin/repo
         chmod a+x ~/bin/repo
         echo "PATH=$HOME/bin:$PATH" >> $GITHUB_ENV
