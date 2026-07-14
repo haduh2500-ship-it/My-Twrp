@@ -13,13 +13,10 @@ AB_OTA_POSTINSTALL_CONFIG += \
     FILESYSTEM_TYPE_system=ext4 \
     POSTINSTALL_OPTIONAL_system=true
 
-# Boot Control HAL & Hardcoded Hardware Pointers
+# Boot Control HAL (Updated to Modern Android Shared Library Format)
 PRODUCT_PACKAGES += \
     android.hardware.boot@1.0-impl \
     android.hardware.boot@1.0-service \
-    bootctrl.mt6765
-
-PRODUCT_STATIC_BOOT_CONTROL_HAL := \
     bootctrl.mt6765 \
     libgptutils \
     libz \
