@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       device_tree_url:
-        description: 'Paste your custom device tree GitHub repository URL here'
+        description: 'Your repository link'
         required: true
-        default: 'https://github.com'
+        default: 'placeholder'
 
 jobs:
   build:
@@ -26,10 +26,12 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick lib32readline-dev lib32z1-dev liblz4-tool libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev python3
 
-    - name: Setup Secure Fixed Repo Tool Launcher
+    - name: Install Python Repo Launcher from Official Git Repository
       run: |
         mkdir -p /home/runner/bin
-        curl -s https://githubusercontent.com > /home/runner/bin/repo
+        # Clones the repo tool source code folder directly instead of using curl on a URL file link
+        git clone --depth=1 https://googlesource.com /home/runner/git-repo-src
+        cp /home/runner/git-repo-src/repo /home/runner/bin/repo
         chmod a+x /home/runner/bin/repo
         echo "PATH=/home/runner/bin:$PATH" >> $GITHUB_ENV
 
@@ -39,6 +41,8 @@ jobs:
         cd /home/runner/twrp
         git config --global user.name "Builder"
         git config --global user.email "builder@twrp.com"
+        
+        # Pulls the manifest directly from the official minimal-manifest-twrp core group repository path
         /home/runner/bin/repo init --depth=1 --no-repo-verify -u https://github.com -b twrp-12.1
         /home/runner/bin/repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
 
