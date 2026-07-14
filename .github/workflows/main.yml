@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       device_tree_url:
-        description: 'Your repository link'
+        description: 'Your repo URL'
         required: true
         default: 'placeholder'
 
@@ -29,8 +29,11 @@ jobs:
     - name: Install Python Repo Launcher from Official Git Repository
       run: |
         mkdir -p /home/runner/bin
-        # Clones the repo tool source code folder directly instead of using curl on a URL file link
-        git clone --depth=1 https://googlesource.com /home/runner/git-repo-src
+        # String trick splits the URL to prevent the chat platform from stripping the text
+        PART1="https://gerrit."
+        PART2="googlesource"
+        PART3=".com/git-repo"
+        git clone --depth=1 "${PART1}${PART2}${PART3}" /home/runner/git-repo-src
         cp /home/runner/git-repo-src/repo /home/runner/bin/repo
         chmod a+x /home/runner/bin/repo
         echo "PATH=/home/runner/bin:$PATH" >> $GITHUB_ENV
@@ -42,8 +45,12 @@ jobs:
         git config --global user.name "Builder"
         git config --global user.email "builder@twrp.com"
         
-        # Pulls the manifest directly from the official minimal-manifest-twrp core group repository path
-        /home/runner/bin/repo init --depth=1 --no-repo-verify -u https://github.com -b twrp-12.1
+        # String trick protects the official TeamWin minimal manifest download tracking paths
+        DOM1="https://github.com"
+        DOM2="/minimal-manifest-twrp"
+        DOM3="/platform_manifest_twrp_aosp.git"
+        
+        /home/runner/bin/repo init --depth=1 --no-repo-verify -u "${DOM1}${DOM2}${DOM3}" -b twrp-12.1
         /home/runner/bin/repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
 
     - name: Clone Custom Target Device Tree
