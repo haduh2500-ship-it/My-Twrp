@@ -2,6 +2,11 @@ name: TWRP Custom Recovery Build Engine
 
 on:
   workflow_dispatch:
+    inputs:
+      device_tree_url:
+        description: 'Paste your custom device tree GitHub repository URL here'
+        required: true
+        default: 'https://github.com'
 
 jobs:
   build:
@@ -35,14 +40,14 @@ jobs:
         git config --global user.name "Builder"
         git config --global user.email "builder@twrp.com"
         
-        # Completely hardcoded to prevent any future input box redirection errors
+        # Flawlessly hardcoded core baseline mapping paths to bypass any redirection bugs
         ~/bin/repo init --depth=1 --no-repo-verify -u https://github.com -b twrp-12.1
         ~/bin/repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
 
     - name: Clone Custom Target Device Tree
       run: |
-        # Directly targets your specific repository structure path
-        git clone https://github.com{{ github.repository }} ~/twrp/device/herofun/BH502G
+        # Manually pulls from your single custom user input field down below
+        git clone ${{ github.event.inputs.device_tree_url }} ~/twrp/device/herofun/BH502G
 
     - name: Compile Unofficial Custom Recovery
       run: |
