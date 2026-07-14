@@ -11,7 +11,7 @@ jobs:
 
     steps:
     - name: Checkout Runtime Build Workspace
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Cleanup Environment Build Space
       uses: rokibhasansagar/slimhub_actions@main
@@ -50,8 +50,7 @@ jobs:
         make bootimage -j$(nproc --all)
 
     - name: Upload Compiled Recovery Image Artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: TWRP-UnrootedRescue-BH502G
-        # Fixed path using wildcard mapping to safely catch the image wherever it builds
         path: /home/runner/twrp/out/target/product/BH502G/*.img
