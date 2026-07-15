@@ -125,9 +125,12 @@ TW_EXCLUDE_MTP := true
 TW_SUPPORT_INPUT_1_2 := false
 TW_INCLUDE_NTFS_3G := false
 
-# Completely Strip out the Graphics Engine & Theme Bloat
-# (Eliminates the twres/images/loop***** loading animations entirely)
-TW_THEME := dummy
+# General GUI Theme Configurations (Official Light Weight Asset Profile)
+TW_THEME := portrait_mdpi
+TW_SCREEN_BLANK_ON_BOOT := true
+TW_INPUT_BLACKLIST := "hbtp_vm"
+TW_USE_TOOLBOX := true
+
 
 # Complete Integrated Decryption Engine Configuration
 # (Targets Android FBEv1 Framework + Linux fscrypt v2 Policy)
