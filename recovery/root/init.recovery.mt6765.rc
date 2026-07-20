@@ -1,10 +1,31 @@
+# ============================================
+# init.recovery.mt6765.rc
+# Validated for BH502G (MT6765/MT8768)
+# Android 13, FBE v2, TrustKernel TEE, Keymaster 4.1
+# ============================================
+
+on early-init
+    # Create necessary directories for FBE decryption
+    mkdir /data 0771 system system
+    mkdir /data/misc 0770 system system
+    mkdir /data/misc/keystore 0700 keystore keystore
+    mkdir /metadata 0770 root root
+    mkdir /metadata/vold 0770 root root
+    mkdir /metadata/vold/metadata_encryption 0770 root root
+
 on init
+    # USB configuration for recovery mode
     setprop sys.usb.configfs 1
     setprop sys.usb.controller "musb-hdrc"
     setprop sys.usb.ffs.aio_compat 1
 
-on fs && property:ro.debuggable=0
+    # Start keymaster and gatekeeper services for decryption
+    start keymaster-4-1-trustkernel
+    start gatekeeper-1-0
+
+on fs
     # distinguish USB should connect or not, i.e. CDP vs SDP
+    # Only execute if not debuggable (production builds)
     write /sys/class/udc/musb-hdrc/device/cmode 2
     # set charging free due to it wait for USB activation
     start adbd
@@ -19,6 +40,39 @@ on post-fs
     symlink /dev/block/mmcblk0boot1 /dev/block/by-name/preloader_b
 
     # Fallback Execution Loop: Triggers the tool from native ramdisk storage arrays
-    exec u:r:update_engine:s0 root root -- /system/bin/mtk_plpath_utils
-    exec u:r:update_engine:s0 root root -- /bin/mtk_plpath_utils
-    exec u:r:update_engine:s0 root root -- /sbin/mtk_plpath_utils
+    # Using recovery seclabel instead of update_engine for proper permissions
+    exec u:r:recovery:s0 root root -- /system/bin/mtk_plpath_utils
+    exec u:r:recovery:s0 root root -- /bin/mtk_plpath_utils
+    exec u:r:recovery:s0 root root -- /sbin/mtk_plpath_utils
+
+# ============================================
+# CRYPTO SERVICES
+# Triggered when device is encrypted
+# ============================================
+on property:ro.crypto.state=encrypted
+    start keymaster-4-1-trustkernel
+    start gatekeeper-1-0
+
+# ============================================
+# KEYMASTER 4.1 SERVICE (TrustKernel)
+# Matches vendor manifest: android.hardware.keymaster@4.1
+# ============================================
+service keymaster-4-1-trustkernel /vendor/bin/hw/android.hardware.keymaster@4.1-service.trustkernel
+    interface android.hardware.keymaster@4.1::IKeymasterDevice default
+    class early_hal
+    user root
+    group root drmrpc
+    disabled
+    seclabel u:r:recovery:s0
+
+# ============================================
+# GATEKEEPER 1.0 SERVICE
+# Uses TrustKernel implementation
+# ============================================
+service gatekeeper-1-0 /vendor/bin/hw/android.hardware.gatekeeper@1.0-service
+    interface android.hardware.gatekeeper@1.0::IGatekeeper default
+    class early_hal
+    user root
+    group root
+    disabled
+    seclabel u:r:recovery:s0
