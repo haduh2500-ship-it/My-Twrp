@@ -4,32 +4,71 @@ on:
   workflow_dispatch:
     inputs:
       device_tree_url:
-        description: 'Your repo URL'
+        description: 'Your repo URL (e.g., https://github.com/haduh2500-ship-it/My-Twrp)'
         required: true
-        default: 'placeholder'
+        default: 'https://github.com/haduh2500-ship-it/My-Twrp'
+      debug_enabled:
+        type: boolean
+        description: 'Enable SSH debug on build failure'
+        required: false
+        default: false
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     permissions:
       contents: write
 
     steps:
+    # ============================================
+    # STEP 1: Checkout Runtime Build Workspace
+    # ============================================
     - name: Checkout Runtime Build Workspace
       uses: actions/checkout@v4
 
+    # ============================================
+    # STEP 2: Cleanup Environment Build Space
+    # ============================================
     - name: Cleanup Environment Build Space
       uses: rokibhasansagar/slimhub_actions@main
 
+    # ============================================
+    # STEP 3: Cache Repo Sync & Build Objects
+    # ============================================
+    - name: Cache TWRP Source & Build
+      uses: actions/cache@v4
+      with:
+        path: |
+          /home/runner/twrp/.repo
+          /home/runner/twrp/out
+          /home/runner/.ccache
+        key: twrp-bh502g-${{ github.run_id }}
+        restore-keys: |
+          twrp-bh502g-
+
+    # ============================================
+    # STEP 4: Install Compilation Build Packages
+    # ============================================
     - name: Install Compilation Build Packages
       run: |
+        sudo dpkg --add-architecture i386
         sudo apt-get update
-        sudo apt-get install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick lib32readline-dev lib32z1-dev liblz4-tool libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev python3
+        sudo apt-get install -y \
+          bc bison build-essential ccache curl flex \
+          g++-multilib gcc-multilib git gnupg gperf \
+          imagemagick lib32readline-dev lib32z1-dev \
+          liblz4-tool libncurses-dev libsdl1.2-dev \
+          libssl-dev libxml2 libxml2-utils lzop \
+          rsync squashfs-tools xsltproc zip zlib1g-dev \
+          python3 python-is-python3 \
+          libtinfo5 libncurses5
 
+    # ============================================
+    # STEP 5: Install Python Repo Launcher
+    # ============================================
     - name: Install Python Repo Launcher from Official Git Repository
       run: |
         mkdir -p /home/runner/bin
-        # String trick splits the URL to prevent the chat platform from stripping the text
         PART1="https://gerrit."
         PART2="googlesource"
         PART3=".com/git-repo"
@@ -38,6 +77,19 @@ jobs:
         chmod a+x /home/runner/bin/repo
         echo "PATH=/home/runner/bin:$PATH" >> $GITHUB_ENV
 
+    # ============================================
+    # STEP 6: Configure ccache
+    # ============================================
+    - name: Configure ccache
+      run: |
+        ccache -M 20G
+        ccache -o compression=true
+        echo "USE_CCACHE=1" >> $GITHUB_ENV
+        echo "CCACHE_EXEC=/usr/bin/ccache" >> $GITHUB_ENV
+
+    # ============================================
+    # STEP 7: Sync TWRP Minimal Source Tree
+    # ============================================
     - name: Sync TWRP Minimal Source Tree
       run: |
         mkdir -p /home/runner/twrp
@@ -45,28 +97,72 @@ jobs:
         git config --global user.name "Builder"
         git config --global user.email "builder@twrp.com"
         
-        # String trick protects the official TeamWin minimal manifest download tracking paths
         DOM1="https://github.com"
         DOM2="/minimal-manifest-twrp"
         DOM3="/platform_manifest_twrp_aosp.git"
         
-        /home/runner/bin/repo init --depth=1 --no-repo-verify -u "${DOM1}${DOM2}${DOM3}" -b twrp-12.1
-        /home/runner/bin/repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
+        # twrp-12.1 branch supports Android 13 builds
+        /home/runner/bin/repo init --depth=1 --no-repo-verify \
+          -u "${DOM1}${DOM2}${DOM3}" -b twrp-12.1
+        /home/runner/bin/repo sync -c -j$(nproc --all) \
+          --force-sync --no-clone-bundle --no-tags
 
+    # ============================================
+    # STEP 8: Clone Custom Target Device Tree
+    # ============================================
     - name: Clone Custom Target Device Tree
       run: |
-        git clone ${{ github.event.inputs.device_tree_url }} /home/runner/twrp/device/herofun/BH502G
+        mkdir -p /home/runner/twrp/device/herofun
+        rm -rf /home/runner/twrp/device/herofun/BH502G
+        git clone --depth=1 \
+          ${{ github.event.inputs.device_tree_url }} \
+          /home/runner/twrp/device/herofun/BH502G
 
+    # ============================================
+    # STEP 9: Compile Unofficial Custom Recovery
+    # ============================================
     - name: Compile Unofficial Custom Recovery
+      id: build
       run: |
         cd /home/runner/twrp
         export ALLOW_MISSING_DEPENDENCIES=true
+        export USE_CCACHE=1
+        export CCACHE_EXEC=/usr/bin/ccache
         source build/envsetup.sh
         lunch omni_BH502G-userdebug
         make bootimage -j$(nproc --all)
+      continue-on-error: true
 
+    # ============================================
+    # STEP 10: Live SSH Debug on Failure
+    # ============================================
+    - name: Setup SSH Debug on Build Failure
+      if: ${{ failure() && inputs.debug_enabled }}
+      uses: mxschmitt/action-tmate@v3
+      with:
+        limit-access-to-actor: true
+
+    # ============================================
+    # STEP 11: Upload Build Logs on Failure
+    # ============================================
+    - name: Upload Build Logs on Failure
+      if: steps.build.outcome == 'failure'
+      uses: actions/upload-artifact@v4
+      with:
+        name: TWRP-Build-Failure-Logs
+        path: |
+          /home/runner/twrp/out/**/*.log
+          /home/runner/twrp/out/build.log
+
+    # ============================================
+    # STEP 12: Upload Compiled Recovery Image Artifacts
+    # ============================================
     - name: Upload Compiled Recovery Image Artifacts
+      if: steps.build.outcome == 'success'
       uses: actions/upload-artifact@v4
       with:
         name: TWRP-UnrootedRescue-BH502G
-        path: /home/runner/twrp/out/target/product/BH502G/*.img
+        path: |
+          /home/runner/twrp/out/target/product/BH502G/boot.img
+          /home/runner/twrp/out/target/product/BH502G/recovery.img
+          /home/runner/twrp/out/target/product/BH502G/*.img
