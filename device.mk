@@ -13,7 +13,7 @@ AB_OTA_POSTINSTALL_CONFIG += \
     FILESYSTEM_TYPE_system=ext4 \
     POSTINSTALL_OPTIONAL_system=true
 
-# Boot Control HAL (Updated to Modern Android Shared Library Format)
+# Boot Control HAL
 PRODUCT_PACKAGES += \
     android.hardware.boot@1.0-impl \
     android.hardware.boot@1.0-service \
@@ -30,15 +30,16 @@ PRODUCT_PACKAGES += \
     update_verifier \
     update_engine_sideload
 
-# Explicit Decryption Service Libraries (Required for MTK Gatekeeper/TEE)
+# Decryption Service Libraries
 PRODUCT_PACKAGES += \
     libxml2 \
     libc++ \
     libcrypto
 
-# Hardcoded File Injection (Copies your custom fstab map AND low-level hardware .rc boot scripts)
+# Recovery File Injections
+# recovery.fstab must be at ramdisk root for TWRP to find it
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/recovery.fstab:recovery/root/system/etc/recovery.fstab \
+    $(LOCAL_PATH)/recovery.fstab:recovery/root/etc/recovery.fstab \
     $(LOCAL_PATH)/recovery/root/init.recovery.mt6765.rc:recovery/root/init.recovery.mt6765.rc \
     $(LOCAL_PATH)/recovery/root/init.recovery.mt8768.rc:recovery/root/init.recovery.mt8768.rc \
     $(LOCAL_PATH)/recovery/root/mtk-plpath-utils.rc:recovery/root/mtk-plpath-utils.rc \
