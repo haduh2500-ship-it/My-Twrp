@@ -37,9 +37,9 @@ PRODUCT_PACKAGES += \
     libcrypto
 
 # Recovery File Injections
-# recovery.fstab must be at ramdisk root for TWRP to find it
+# FIXED: recovery.fstab at ramdisk root to avoid rsync conflict with etc symlink
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/recovery.fstab:recovery/root/etc/recovery.fstab \
+    $(LOCAL_PATH)/recovery.fstab:recovery/root/recovery.fstab \
     $(LOCAL_PATH)/recovery/root/init.recovery.mt6765.rc:recovery/root/init.recovery.mt6765.rc \
     $(LOCAL_PATH)/recovery/root/init.recovery.mt8768.rc:recovery/root/init.recovery.mt8768.rc \
     $(LOCAL_PATH)/recovery/root/mtk-plpath-utils.rc:recovery/root/mtk-plpath-utils.rc \
