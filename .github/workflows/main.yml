@@ -15,6 +15,8 @@ on:
 
 jobs:
   build:
+    # ubuntu-22.04 is standard LTS with stable package availability
+    # GitHub guarantees support until at least April 2027
     runs-on: ubuntu-22.04
     permissions:
       contents: write
@@ -33,7 +35,7 @@ jobs:
       uses: rokibhasansagar/slimhub_actions@main
 
     # ============================================
-    # STEP 3: Cache Repo Sync & Build Objects
+    # STEP 3: Cache TWRP Source & Build Objects
     # ============================================
     - name: Cache TWRP Source & Build
       uses: actions/cache@v4
@@ -41,7 +43,7 @@ jobs:
         path: |
           /home/runner/twrp/.repo
           /home/runner/twrp/out
-          /home/runner/.ccache
+          /home/runner/twrp/.ccache
         key: twrp-bh502g-${{ github.run_id }}
         restore-keys: |
           twrp-bh502g-
@@ -61,7 +63,8 @@ jobs:
           libssl-dev libxml2 libxml2-utils lzop \
           rsync squashfs-tools xsltproc zip zlib1g-dev \
           python3 python-is-python3 \
-          libtinfo5 libncurses5
+          libtinfo5 libncurses5 \
+          tmate
 
     # ============================================
     # STEP 5: Install Python Repo Launcher
@@ -78,14 +81,20 @@ jobs:
         echo "PATH=/home/runner/bin:$PATH" >> $GITHUB_ENV
 
     # ============================================
-    # STEP 6: Configure ccache
+    # STEP 6: Configure ccache (Writable Directory)
+    # FIX: ccache dir moved to /home/runner/twrp/.ccache
+    # to avoid read-only filesystem issues from slimhub_actions
     # ============================================
     - name: Configure ccache
       run: |
+        export CCACHE_DIR=/home/runner/twrp/.ccache
+        mkdir -p $CCACHE_DIR
         ccache -M 20G
         ccache -o compression=true
+        ccache -o cache_dir=$CCACHE_DIR
         echo "USE_CCACHE=1" >> $GITHUB_ENV
         echo "CCACHE_EXEC=/usr/bin/ccache" >> $GITHUB_ENV
+        echo "CCACHE_DIR=$CCACHE_DIR" >> $GITHUB_ENV
 
     # ============================================
     # STEP 7: Sync TWRP Minimal Source Tree
@@ -101,7 +110,7 @@ jobs:
         DOM2="/minimal-manifest-twrp"
         DOM3="/platform_manifest_twrp_aosp.git"
         
-        # twrp-12.1 branch supports Android 13 builds
+        # Using twrp-12.1 branch (supports Android 13 builds)
         /home/runner/bin/repo init --depth=1 --no-repo-verify \
           -u "${DOM1}${DOM2}${DOM3}" -b twrp-12.1
         /home/runner/bin/repo sync -c -j$(nproc --all) \
@@ -128,34 +137,23 @@ jobs:
         export ALLOW_MISSING_DEPENDENCIES=true
         export USE_CCACHE=1
         export CCACHE_EXEC=/usr/bin/ccache
+        export CCACHE_DIR=/home/runner/twrp/.ccache
         source build/envsetup.sh
         lunch omni_BH502G-userdebug
         make bootimage -j$(nproc --all)
       continue-on-error: true
 
     # ============================================
-    # STEP 10: Live SSH Debug on Failure
+    # STEP 10: Live SSH Debug on Failure (Optional)
     # ============================================
     - name: Setup SSH Debug on Build Failure
-      if: ${{ failure() && inputs.debug_enabled }}
+      if: ${{ failure() && github.event.inputs.debug_enabled == 'true' }}
       uses: mxschmitt/action-tmate@v3
       with:
         limit-access-to-actor: true
 
     # ============================================
-    # STEP 11: Upload Build Logs on Failure
-    # ============================================
-    - name: Upload Build Logs on Failure
-      if: steps.build.outcome == 'failure'
-      uses: actions/upload-artifact@v4
-      with:
-        name: TWRP-Build-Failure-Logs
-        path: |
-          /home/runner/twrp/out/**/*.log
-          /home/runner/twrp/out/build.log
-
-    # ============================================
-    # STEP 12: Upload Compiled Recovery Image Artifacts
+    # STEP 11: Upload Compiled Recovery Image Artifacts
     # ============================================
     - name: Upload Compiled Recovery Image Artifacts
       if: steps.build.outcome == 'success'
@@ -166,3 +164,15 @@ jobs:
           /home/runner/twrp/out/target/product/BH502G/boot.img
           /home/runner/twrp/out/target/product/BH502G/recovery.img
           /home/runner/twrp/out/target/product/BH502G/*.img
+
+    # ============================================
+    # STEP 12: Upload Build Logs on Failure
+    # ============================================
+    - name: Upload Build Logs on Failure
+      if: steps.build.outcome == 'failure'
+      uses: actions/upload-artifact@v4
+      with:
+        name: TWRP-Build-Failure-Logs
+        path: |
+          /home/runner/twrp/out/**/*.log
+          /home/runner/twrp/out/build.log
