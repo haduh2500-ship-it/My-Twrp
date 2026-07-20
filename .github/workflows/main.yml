@@ -129,9 +129,11 @@ jobs:
 
     # ============================================
     # STEP 9: Compile Unofficial Custom Recovery
+    # Reduced to -j2 to prevent runner deadlock
     # ============================================
     - name: Compile Unofficial Custom Recovery
       id: build
+      timeout-minutes: 300
       run: |
         cd /home/runner/twrp
         export ALLOW_MISSING_DEPENDENCIES=true
@@ -140,7 +142,7 @@ jobs:
         export CCACHE_DIR=/home/runner/twrp/.ccache
         source build/envsetup.sh
         lunch omni_BH502G-userdebug
-        make bootimage -j$(nproc --all)
+        make bootimage -j2
       continue-on-error: true
 
     # ============================================
