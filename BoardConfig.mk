@@ -25,7 +25,7 @@ BOARD_USES_RECOVERY_AS_BOOT := true
 TARGET_ARCH := arm64
 TARGET_ARCH_VARIANT := armv8-a
 TARGET_CPU_ABI := arm64-v8a
-TARGET_CPU_ABI2 := 
+# TARGET_CPU_ABI2 intentionally empty for pure 64-bit primary
 TARGET_CPU_VARIANT := generic
 TARGET_CPU_VARIANT_RUNTIME := cortex-a53
 
@@ -67,13 +67,15 @@ ifeq ($(TARGET_FORCE_PREBUILT_KERNEL),true)
 TARGET_PREBUILT_KERNEL := $(DEVICE_PATH)/prebuilt/kernel
 TARGET_PREBUILT_DTB := $(DEVICE_PATH)/prebuilt/dtb.img
 BOARD_MKBOOTIMG_ARGS += --dtb $(TARGET_PREBUILT_DTB)
+# Clear in-bootimg DTB since we use separate prebuilt DTB
 BOARD_INCLUDE_DTB_IN_BOOTIMG :=
 endif
 
 # Partition Sizes & Filesystem Definitions
 BOARD_FLASH_BLOCK_SIZE := 131072
-# Bypassing the size wall: Tricked compiler limit to 64MB so it successfully saves the image
+# Boot image size: 64MB (tricked compiler limit for successful image save)
 BOARD_BOOTIMAGE_PARTITION_SIZE := 67108864
+# Recovery image size: 64MB (unused with recovery-as-boot but kept for compatibility)
 BOARD_RECOVERYIMAGE_PARTITION_SIZE := 67108864
 BOARD_HAS_LARGE_FILESYSTEM := true
 BOARD_SYSTEMIMAGE_PARTITION_TYPE := ext4
@@ -91,10 +93,12 @@ TARGET_BOARD_PLATFORM := mt6765
 # Recovery Options
 TARGET_RECOVERY_PIXEL_FORMAT := BGRA_8888
 TARGET_USERIMAGES_USE_EXT4 := true
-TARGET_USERIMAGES_USE_F2FS := true
+# Stock uses ext4 for userdata — disable f2fs to prevent mount conflicts
+TARGET_USERIMAGES_USE_F2FS := false
 
 # Verified Boot
 BOARD_AVB_ENABLE := true
+# --flags 3: disable verification + disable rollback (required for custom recovery)
 BOARD_AVB_MAKE_VBMETA_IMAGE_ARGS += --flags 3
 
 # Align Version System Flags (Critical for Keymaster Verification matching Android 13 OS)
@@ -134,18 +138,41 @@ TW_SCREEN_BLANK_ON_BOOT := true
 TW_INPUT_BLACKLIST := "hbtp_vm"
 TW_USE_TOOLBOX := true
 
-# Complete Integrated Decryption Engine Configuration
-# (Targets Android FBEv1 Framework + Linux fscrypt v2 Policy)
+# ============================================
+# PHASE 2 FIXES: TrustKernel TEE + FBE v2
+# ============================================
+
+# Disable QCOM hardware flag BEFORE crypto config (prevents QTI TEE probing)
+BOARD_USES_QCOM_HARDWARE := false
+
+# Core FBE Decryption Configuration (Android 13 + FBE v2)
 TW_INCLUDE_CRYPTO := true
 TW_INCLUDE_CRYPTO_FBE := true
 TW_INCLUDE_FBE_METADATA_DECRYPT := true
 BOARD_USES_METADATA_ENCRYPTION := true
-TARGET_CRYPT_ENGINE_TEE := true
 TW_USE_FSCRYPT_POLICY := 2
 TW_USE_FS_IOC_ADD_ENCRYPTION_KEY := true
-TW_NEEDS_KEYSTORE_SERVICE := true
-TW_SUPPORT_SHA256_CRYPTO := true
 
-# Disable legacy hardware wrappers to clear the libcryptfs_hw compilation error
+# CRITICAL: Force Keymaster 4.1 to match vendor manifest
+TW_FORCE_KEYMASTER_VERSION := 4.1
+TW_USE_KEYMASTER_V4_1 := true
+TW_CRYPTO_KEYMASTER_V2 := true
+
+# Use software gatekeeper (TrustKernel gatekeeper requires TEE initialization)
+TW_USE_SOFTWARE_GATEKEEPER := true
+
+# Disable TEE probing to prevent TrustKernel TEE initialization conflicts
+TW_IGNORE_TEE := true
+
+# Fix vendor mount on dynamic partition devices
+TW_MOUNT_VENDOR_AS_SYSTEM := true
+
+# Auto-decrypt devices without lockscreen (default_password for FBE default encryption)
+TW_DEFAULT_PASSWORD := "default_password"
+
+# NVRAM support for MTK devices
+TW_INCLUDE_NVRAM := true
+TW_NVRAM_PATH := /mnt/vendor/nvdata
+
+# Disable legacy hardware wrappers to clear libcryptfs_hw compilation error
 TW_IGNORE_MISC_WIPE_DATA := true
-BOARD_USES_QCOM_HARDWARE := false
