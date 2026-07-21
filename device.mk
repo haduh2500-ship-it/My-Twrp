@@ -43,7 +43,13 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/recovery/root/init.recovery.mt6765.rc:recovery/root/init.recovery.mt6765.rc \
     $(LOCAL_PATH)/recovery/root/init.recovery.mt8768.rc:recovery/root/init.recovery.mt8768.rc \
     $(LOCAL_PATH)/recovery/root/mtk-plpath-utils.rc:recovery/root/mtk-plpath-utils.rc \
-    $(LOCAL_PATH)/recovery/root/snapuserd.rc:recovery/root/snapuserd.rc \
+    $(LOCAL_PATH)/recovery/root/snapuserd.rc:recovery/root/snapuserd.rc
+
+# ============================================
+# FIRST STAGE RAMDISK — CRITICAL for recovery-as-boot
+# Without these, /metadata is never mounted and FBE decryption fails
+# ============================================
+PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/recovery/root/first_stage_ramdisk/fstab.mt6765:recovery/root/first_stage_ramdisk/fstab.mt6765 \
     $(LOCAL_PATH)/recovery/root/first_stage_ramdisk/fstab.mt8768:recovery/root/first_stage_ramdisk/fstab.mt8768 \
     $(LOCAL_PATH)/recovery/root/first_stage_ramdisk/system/bin/snapuserd:recovery/root/first_stage_ramdisk/system/bin/snapuserd \
