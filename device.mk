@@ -43,4 +43,11 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/recovery/root/init.recovery.mt6765.rc:recovery/root/init.recovery.mt6765.rc \
     $(LOCAL_PATH)/recovery/root/init.recovery.mt8768.rc:recovery/root/init.recovery.mt8768.rc \
     $(LOCAL_PATH)/recovery/root/mtk-plpath-utils.rc:recovery/root/mtk-plpath-utils.rc \
-    $(LOCAL_PATH)/recovery/root/snapuserd.rc:recovery/root/snapuserd.rc
+    $(LOCAL_PATH)/recovery/root/snapuserd.rc:recovery/root/snapuserd.rc \
+    $(LOCAL_PATH)/recovery/root/first_stage_ramdisk/fstab.mt6765:recovery/root/first_stage_ramdisk/fstab.mt6765 \
+    $(LOCAL_PATH)/recovery/root/first_stage_ramdisk/fstab.mt8768:recovery/root/first_stage_ramdisk/fstab.mt8768 \
+    $(LOCAL_PATH)/recovery/root/first_stage_ramdisk/system/bin/snapuserd:recovery/root/first_stage_ramdisk/system/bin/snapuserd \
+    $(LOCAL_PATH)/recovery/root/system/bin/init:recovery/root/system/bin/init \
+    $(LOCAL_PATH)/recovery/root/system/bin/mtk_plpath_utils:recovery/root/system/bin/mtk_plpath_utils \
+    $(LOCAL_PATH)/recovery/root/system/bin/snapuserd:recovery/root/system/bin/snapuserd \
+    $(LOCAL_PATH)/recovery/root/system/etc/init/hw/init.rc:recovery/root/system/etc/init/hw/init.rc
