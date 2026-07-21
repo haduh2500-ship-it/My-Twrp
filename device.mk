@@ -37,6 +37,7 @@ PRODUCT_PACKAGES += \
     libcrypto
 
 # Recovery File Injections
+# ONLY files that TWRP does NOT generate automatically
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/recovery.fstab:recovery/root/recovery.fstab \
     $(LOCAL_PATH)/recovery/root/init.recovery.mt6765.rc:recovery/root/init.recovery.mt6765.rc \
@@ -44,14 +45,7 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/recovery/root/mtk-plpath-utils.rc:recovery/root/mtk-plpath-utils.rc \
     $(LOCAL_PATH)/recovery/root/snapuserd.rc:recovery/root/snapuserd.rc
 
-# First stage ramdisk — CRITICAL for recovery-as-boot
-# REMOVED: All conflicting binaries, init.rc, sepolicy — TWRP build system provides them
-# Will inject manually post-build
+# First stage ramdisk fstab files — TWRP does NOT generate these
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/recovery/root/first_stage_ramdisk/fstab.mt6765:recovery/root/first_stage_ramdisk/fstab.mt6765 \
-    $(LOCAL_PATH)/recovery/root/first_stage_ramdisk/fstab.mt8768:recovery/root/first_stage_ramdisk/fstab.mt8768 \
-    $(LOCAL_PATH)/recovery/root/system/bin/mtk_plpath_utils:recovery/root/system/bin/mtk_plpath_utils \
-    $(LOCAL_PATH)/recovery/root/plat_file_contexts:recovery/root/plat_file_contexts \
-    $(LOCAL_PATH)/recovery/root/plat_property_contexts:recovery/root/plat_property_contexts \
-    $(LOCAL_PATH)/recovery/root/vendor_file_contexts:recovery/root/vendor_file_contexts \
-    $(LOCAL_PATH)/recovery/root/vendor_property_contexts:recovery/root/vendor_property_contexts
+    $(LOCAL_PATH)/recovery/root/first_stage_ramdisk/fstab.mt8768:recovery/root/first_stage_ramdisk/fstab.mt8768
