@@ -50,4 +50,15 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/recovery/root/system/bin/init:recovery/root/system/bin/init \
     $(LOCAL_PATH)/recovery/root/system/bin/mtk_plpath_utils:recovery/root/system/bin/mtk_plpath_utils \
     $(LOCAL_PATH)/recovery/root/system/bin/snapuserd:recovery/root/system/bin/snapuserd \
-    $(LOCAL_PATH)/recovery/root/system/etc/init/hw/init.rc:recovery/root/system/etc/init/hw/init.rc
+    $(LOCAL_PATH)/recovery/root/system/etc/init/hw/init.rc:recovery/root/system/etc/init/hw/init.rc \
+    $(LOCAL_PATH)/recovery/root/sepolicy:recovery/root/sepolicy \
+    $(LOCAL_PATH)/recovery/root/plat_file_contexts:recovery/root/plat_file_contexts \
+    $(LOCAL_PATH)/recovery/root/plat_property_contexts:recovery/root/plat_property_contexts \
+    $(LOCAL_PATH)/recovery/root/vendor_file_contexts:recovery/root/vendor_file_contexts \
+    $(LOCAL_PATH)/recovery/root/vendor_property_contexts:recovery/root/vendor_property_contexts \
+    $(LOCAL_PATH)/recovery/root/product_file_contexts:recovery/root/product_file_contexts \
+    $(LOCAL_PATH)/recovery/root/product_property_contexts:recovery/root/product_property_contexts \
+    $(LOCAL_PATH)/recovery/root/system_ext_file_contexts:recovery/root/system_ext_file_contexts \
+    $(LOCAL_PATH)/recovery/root/system_ext_property_contexts:recovery/root/system_ext_property_contexts \
+    $(LOCAL_PATH)/recovery/root/odm_file_contexts:recovery/root/odm_file_contexts \
+    $(LOCAL_PATH)/recovery/root/odm_property_contexts:recovery/root/odm_property_contexts
