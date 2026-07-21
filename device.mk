@@ -37,7 +37,6 @@ PRODUCT_PACKAGES += \
     libcrypto
 
 # Recovery File Injections
-# FIXED: recovery.fstab at ramdisk root to avoid rsync conflict with etc symlink
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/recovery.fstab:recovery/root/recovery.fstab \
     $(LOCAL_PATH)/recovery/root/init.recovery.mt6765.rc:recovery/root/init.recovery.mt6765.rc \
@@ -45,10 +44,7 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/recovery/root/mtk-plpath-utils.rc:recovery/root/mtk-plpath-utils.rc \
     $(LOCAL_PATH)/recovery/root/snapuserd.rc:recovery/root/snapuserd.rc
 
-# ============================================
-# FIRST STAGE RAMDISK — CRITICAL for recovery-as-boot
-# Without these, /metadata is never mounted and FBE decryption fails
-# ============================================
+# First stage ramdisk — CRITICAL for recovery-as-boot
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/recovery/root/first_stage_ramdisk/fstab.mt6765:recovery/root/first_stage_ramdisk/fstab.mt6765 \
     $(LOCAL_PATH)/recovery/root/first_stage_ramdisk/fstab.mt8768:recovery/root/first_stage_ramdisk/fstab.mt8768 \
@@ -61,10 +57,4 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/recovery/root/plat_file_contexts:recovery/root/plat_file_contexts \
     $(LOCAL_PATH)/recovery/root/plat_property_contexts:recovery/root/plat_property_contexts \
     $(LOCAL_PATH)/recovery/root/vendor_file_contexts:recovery/root/vendor_file_contexts \
-    $(LOCAL_PATH)/recovery/root/vendor_property_contexts:recovery/root/vendor_property_contexts \
-    $(LOCAL_PATH)/recovery/root/product_file_contexts:recovery/root/product_file_contexts \
-    $(LOCAL_PATH)/recovery/root/product_property_contexts:recovery/root/product_property_contexts \
-    $(LOCAL_PATH)/recovery/root/system_ext_file_contexts:recovery/root/system_ext_file_contexts \
-    $(LOCAL_PATH)/recovery/root/system_ext_property_contexts:recovery/root/system_ext_property_contexts \
-    $(LOCAL_PATH)/recovery/root/odm_file_contexts:recovery/root/odm_file_contexts \
-    $(LOCAL_PATH)/recovery/root/odm_property_contexts:recovery/root/odm_property_contexts
+    $(LOCAL_PATH)/recovery/root/vendor_property_contexts:recovery/root/vendor_property_contexts
