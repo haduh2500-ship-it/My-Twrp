@@ -45,7 +45,8 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/recovery/root/snapuserd.rc:recovery/root/snapuserd.rc
 
 # First stage ramdisk — CRITICAL for recovery-as-boot
-# REMOVED: snapuserd binaries — TWRP build system already includes them
+# REMOVED: snapuserd binaries — TWRP build system conflicts with manual copy
+# Will inject snapuserd manually post-build
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/recovery/root/first_stage_ramdisk/fstab.mt6765:recovery/root/first_stage_ramdisk/fstab.mt6765 \
     $(LOCAL_PATH)/recovery/root/first_stage_ramdisk/fstab.mt8768:recovery/root/first_stage_ramdisk/fstab.mt8768 \
